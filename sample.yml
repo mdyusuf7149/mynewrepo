@@ -10,3 +10,7 @@
      apt:
         name: git
         state: present
+   - name: install curl
+     apt:
+        name: curl
+        state: present
