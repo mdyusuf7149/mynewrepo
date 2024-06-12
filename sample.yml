@@ -2,7 +2,7 @@
 - hosts: all
   become: yes
   tasks: 
-   - name: install Git
+   - name: install apache2
      apt: 
-        name: Git
+        name: apache2
         state: present
