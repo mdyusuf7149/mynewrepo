@@ -10,5 +10,5 @@
 
 [mywebservers:vars]
 myvar01= value
-myubuntuserver= apache2
+myubuntuserver= apache2222222
 myredhatserver= tree
