@@ -4,7 +4,7 @@
 [myredhatserver]
 10.0.0.6 #redhat machine
 
-[myubuntuserver=node01]
+[myubuntuserver:node01]
 node01=value
 myubuntuserver= synaptic
 myredhatserver= toolbox
