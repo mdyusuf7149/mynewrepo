@@ -9,11 +9,11 @@
      when: ansible_os_family=="RedHat"
    - name: inatll toolbox on webserver
      dnf:
-       name: toolbox
+       name: "{{myredhatserver}}"
        state: present
      when: ansible_os_family=="RedHat"
    - name: install synaptic on ubuntu server
      apt:
-       name: synaptic
+       name: "{{myubuntuserver}}"
        status: present
      when: ansible_os_family=="Debian"
