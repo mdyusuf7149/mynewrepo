@@ -20,3 +20,8 @@
         name: apache2
         state: started
      when: ansible_service_mgr == "systemd"
+   - name: Remove curl
+     apt: 
+        name: curl
+        state: absent
+     when: ansible_processor_vcpus == "1"
