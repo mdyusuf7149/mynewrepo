@@ -16,6 +16,6 @@
         state: present
    - name: start apache server web services
      service:
-       when: ansible_os_family =="Debian"
        name: apache2
        state: started
+       when: ansible_os_family =="Debian"
