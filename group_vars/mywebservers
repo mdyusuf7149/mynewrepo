@@ -1,0 +1,7 @@
+---
+myvar01: value
+myubuntuserver: apache2
+myredhatserver: tree
+
+myjavaonubuntu: openjdk-8-jre
+myjavaonredhat: java-1.8.0-openjdk
