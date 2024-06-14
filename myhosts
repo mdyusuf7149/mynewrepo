@@ -10,5 +10,5 @@
 
 [mywebservers:vars]
 myvar01= value
-myubuntuserver=tree
+myubuntuserver=wget
 myredhatserver=tree

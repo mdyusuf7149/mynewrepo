@@ -12,7 +12,7 @@
        name: "{{myredhatserver}}"
        state: present
      when: ansible_os_family=="RedHat"
-   - name: install tree on ubuntu server
+   - name: install wget on ubuntu server
      apt:
        name: "{{myubuntuserver}}"
        status: present
