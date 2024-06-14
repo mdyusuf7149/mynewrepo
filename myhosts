@@ -1,2 +1,5 @@
+[myubuntuserver]
 10.0.0.5 #ubuntu machine
+
+[myredhatserver]
 10.0.0.6 #redhat machine
