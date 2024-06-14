@@ -8,7 +8,7 @@
 10.0.0.5
 10.0.0.6
 
-[myubuntuserver:vars]
+[mywebservers:vars]
 myvar01= value
 myubuntuserver=tree
 myredhatserver=tree

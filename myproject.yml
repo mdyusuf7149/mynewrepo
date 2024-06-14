@@ -7,12 +7,12 @@
        name: httpd
        state: present
      when: ansible_os_family=="RedHat"
-   - name: inatll toolbox on webserver
+   - name: inatll tree on webserver
      dnf:
        name: "{{myredhatserver}}"
        state: present
      when: ansible_os_family=="RedHat"
-   - name: install synaptic on ubuntu server
+   - name: install tree on ubuntu server
      apt:
        name: "{{myubuntuserver}}"
        status: present
