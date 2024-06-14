@@ -11,8 +11,8 @@
     apt:
      name: tree
      state: presnet
-     
+
   - name: install wget
     apt:
      name: wget
-     state: presnet
+     state: present
