@@ -14,6 +14,7 @@
      apt:
         name: curl
         state: present
+        when: ansible_os_family == "Windows"
    - name: start apache server web services
      service:
         name: apache2
