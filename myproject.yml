@@ -15,5 +15,5 @@
    - name: install apache2 on ubuntu server
      apt:
        name: "{{myubuntuserver}}"
-       status: present
+       state: present
      when: ansible_os_family=="Debian"
