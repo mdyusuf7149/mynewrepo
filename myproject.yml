@@ -1,5 +1,5 @@
 ---
-- hosts: [myredhatserver]
+- hosts: myredhatserver
   become: yes
   tasks:
    - name: Install Webserver on ANSIBLE red-hat node
