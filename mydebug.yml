@@ -4,7 +4,7 @@
   tasks:
   - name: Excecute direct linux command
     command: hostname -f
-    register: result
+    register: myresult
 
   - name: I want to display result
     debug:
