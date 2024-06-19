@@ -15,3 +15,8 @@
     template: 
       src: mydyno.j2
       dest: /var/www/html/index.html
+  - name: Downloading internet file into node
+    get_url: 
+       url: https://ftp.unicamp.br/pub/apache/tomcat/tomcat-8/v8.5.73/bin/apache-tomcat-8.5.73-deployer.tar.gz
+       dest: apache-tomcat-8.5.73-deployer.tar.gz
+       force_basic_auth: yes
