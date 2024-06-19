@@ -17,4 +17,5 @@
     apt:
       name: install wget
       state: present
+    ignore_errors: yes
     
