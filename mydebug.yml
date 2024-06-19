@@ -7,4 +7,5 @@
     register: result
 
   - name: I want to display result
-    debug: "{{result}}"
+    debug:
+      msg: "{{result}}"
