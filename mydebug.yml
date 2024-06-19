@@ -9,3 +9,15 @@
   - name: I want to display result
     debug:
       msg: "{{result}}"
+
+  - name: install git
+    apt:
+      name: git
+      state: present
+      when: result.stderr==""
+
+  - name: install tree
+    apt: 
+      name: install tree
+      state: present
+      when: result.stderr !=""
