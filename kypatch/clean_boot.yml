@@ -1,0 +1,32 @@
+---
+- name: Check disk space on /boot
+  command: df /boot
+  register: boot_space
+
+- name: Parse the /boot usage
+  set_fact:
+    boot_usage: "{{ boot_space.stdout_lines[1].split()[4] | regex_replace('%', '') | int }}"
+
+- name: Clean /boot if usage is above 80%
+  when: boot_usage > 80
+  block:
+    - name: Remove old kernels and retain latest 2 versions
+      shell: >
+        dpkg --list | grep linux-image | awk '{ print $2 }' | sort -V | head -n -2 | xargs sudo apt-get -y purge
+      register: kernel_cleanup
+      ignore_errors: yes
+
+    - name: Log kernel cleanup
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "Old kernels removed from /boot."
+
+    - name: Autoremove any unnecessary packages
+      apt:
+        autoremove: yes
+        purge: yes
+
+    - name: Log autoremove
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "Unnecessary packages autoremoved."

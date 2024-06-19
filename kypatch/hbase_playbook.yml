@@ -1,0 +1,100 @@
+---
+- name: Patch HBase servers and manage services
+  hosts: "{{ target_group }}"
+  become: yes
+  vars:
+    log_path: "{{ log_directory }}/{{ cr_no.user_input }}/execution.log"
+
+  tasks:
+    - name: Check if hbase.service is running
+      command: systemctl is-active hbase.service
+      register: hbase_status
+      ignore_errors: yes
+
+    - name: Log hbase.service status
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "hbase.service status: {{ hbase_status.stdout }}"
+
+    - name: Notify if hbase.service is running and prompt to stop it
+      when: hbase_status.stdout == "active"
+      pause:
+        prompt: "hbase.service is currently running. Do you want to stop the hbase.service? (yes/no)"
+
+    - name: Stop hbase.service if running
+      when: (hbase_status.stdout == "active") and (ansible_facts['user_input'].lower() == 'yes')
+      systemd:
+        name: hbase.service
+        state: stopped
+
+    - name: Log hbase.service stop
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "hbase.service stopped."
+
+    - name: Check if opentsdb.service is running
+      command: systemctl is-active opentsdb.service
+      register: opentsdb_status
+      ignore_errors: yes
+
+    - name: Log opentsdb.service status
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "opentsdb.service status: {{ opentsdb_status.stdout }}"
+
+    - name: Notify if opentsdb.service is running and prompt to stop it
+      when: opentsdb_status.stdout == "active"
+      pause:
+        prompt: "opentsdb.service is currently running. Do you want to stop the opentsdb.service? (yes/no)"
+
+    - name: Stop opentsdb.service if running
+      when: (opentsdb_status.stdout == "active") and (ansible_facts['user_input'].lower() == 'yes')
+      systemd:
+        name: opentsdb.service
+        state: stopped
+
+    - name: Log opentsdb.service stop
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "opentsdb.service stopped."
+
+    - include_tasks: clean_boot.yml
+
+    - name: Update and upgrade the server
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+        force_apt_get: yes
+
+    - name: Log upgrade
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "Server updated and upgraded."
+
+    - name: Reboot the server
+      reboot:
+
+    - name: Wait for the server to come back online
+      wait_for_connection:
+        delay: 30
+        timeout: 300
+
+    - name: Ensure hbase.service is running after reboot
+      systemd:
+        name: hbase.service
+        state: started
+        enabled: yes
+
+    - name: Ensure opentsdb.service is running after reboot
+      systemd:
+        name: opentsdb.service
+        state: started
+        enabled: yes
+
+    - name: Log services status after reboot
+      blockinfile:
+        path: "{{ log_path }}"
+        block: |
+          hbase.service status after reboot: {{ hbase_status.stdout }}
+          opentsdb.service status after reboot: {{ opentsdb_status.stdout }}

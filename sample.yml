@@ -24,4 +24,3 @@
      apt: 
         name: curl
         state: absent
-     when: ansible_processor_vcpus == "2"

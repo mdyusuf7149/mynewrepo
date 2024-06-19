@@ -1,0 +1,34 @@
+---
+- name: Patch Web Proxy server and manage services
+  hosts: "{{ target_group }}"
+  become: yes
+  vars:
+    log_path: "{{ log_directory }}/{{ cr_no.user_input }}/execution.log"
+
+  tasks:
+    - include_tasks: clean_boot.yml
+
+    - name: Update and upgrade the server
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+        force_apt_get: yes
+
+    - name: Log upgrade
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "Server updated and upgraded."
+
+    - name: Reboot the server
+      reboot:
+
+    - name: Wait for the server to come back online
+      wait_for_connection:
+        delay: 30
+        timeout: 300
+
+    - name: Log services status after reboot
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "Web Proxy server rebooted and back online."

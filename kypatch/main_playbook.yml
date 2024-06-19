@@ -1,0 +1,124 @@
+---
+- name: Main playbook to patch all servers and manage services
+  hosts: localhost
+  gather_facts: true
+
+  vars:
+    log_directory: /home/ansibleadmin/patchscripts/newscripts/logs
+
+  tasks:
+    - name: Prompt for Change Request No
+      pause:
+        prompt: "Please enter the Change Request No (CR No) for this patching session:"
+      register: cr_no
+
+    - name: Create directory for Change Request logs
+      file:
+        path: "{{ log_directory }}/{{ cr_no.user_input }}"
+        state: directory
+        mode: '0755'
+
+    - name: Set log path
+      set_fact:
+        log_path: "{{ log_directory }}/{{ cr_no.user_input }}/execution.log"
+
+    - name: Start logging
+      blockinfile:
+        path: "{{ log_path }}"
+        create: yes
+        block: "### Execution started at {{ ansible_date_time.iso8601 }} ###"
+
+    - name: Prompt for category of servers to patch
+      pause:
+        prompt: |
+          Please enter the category of servers you want to patch:
+          1. HBase Servers
+          2. Kafka Servers
+          3. Logstash Servers
+          4. Web Proxy Server
+          5. Exit
+      register: server_category
+
+    - name: Set server group based on category input
+      set_fact:
+        server_group: >-
+          {% if server_category.user_input == '1' %}
+            hbase_group
+          {% elif server_category.user_input == '2' %}
+            kafka_group
+          {% elif server_category.user_input == '3' %}
+            logstash_group
+          {% elif server_category.user_input == '4' %}
+            web_proxy_group
+          {% elif server_category.user_input == '5' %}
+            exit
+          {% else %}
+            unknown
+          {% endif %}
+
+    - name: Fail if invalid category selection
+      fail:
+        msg: "Invalid category selection. Please enter 1, 2, 3, 4, or 5."
+      when: server_group == 'unknown'
+
+    - name: Exit execution if selected
+      meta: end_play
+      when: server_group == 'exit'
+
+    - name: Prompt for specific server group to patch
+      pause:
+        prompt: |
+          Please enter the specific server group you want to patch:
+          1. Production
+          2. Development
+          3. Staging
+      register: specific_group
+      when: server_group != 'web_proxy_group' and server_group != 'exit'
+
+    - name: Set target group based on specific group input
+      set_fact:
+        target_group: >-
+          {% if server_group == 'hbase_group' and specific_group.user_input == '1' %}
+            hbase_prod
+          {% elif server_group == 'hbase_group' and specific_group.user_input == '2' %}
+            hbase_dev
+          {% elif server_group == 'hbase_group' and specific_group.user_input == '3' %}
+            hbase_stg
+          {% elif server_group == 'kafka_group' and specific_group.user_input == '1' %}
+            kafka_prod
+          {% elif server_group == 'kafka_group' and specific_group.user_input == '2' %}
+            kafka_dev
+          {% elif server_group == 'kafka_group' and specific_group.user_input == '3' %}
+            kafka_stg
+          {% elif server_group == 'logstash_group' and specific_group.user_input == '1' %}
+            logstash_prod
+          {% elif server_group == 'logstash_group' and specific_group.user_input == '2' %}
+            logstash_dev
+          {% elif server_group == 'logstash_group' and specific_group.user_input == '3' %}
+            logstash_stg
+          {% elif server_group == 'web_proxy_group' %}
+            web_proxy
+          {% else %}
+            unknown
+          {% endif %}
+
+    - name: Fail if invalid specific group selection
+      fail:
+        msg: "Invalid specific group selection. Please enter 1, 2, or 3."
+      when: target_group == 'unknown'
+
+    - name: Include HBase tasks
+      include_tasks: hbase_playbook.yml
+      when: target_group in ['hbase_prod', 'hbase_dev', 'hbase_stg']
+
+    - name: Include Kafka tasks
+      include_tasks: kafka_playbook.yml
+      when: target_group in ['kafka_prod', 'kafka_dev', 'kafka_stg']
+
+    - name: Include Logstash tasks
+      include_tasks: logstash_playbook.yml
+      when: target_group in ['logstash_prod', 'logstash_dev', 'logstash_stg']
+
+    - name: Include Web Proxy tasks
+      include_tasks: web_proxy_playbook.yml
+      when: target_group == 'web_proxy'

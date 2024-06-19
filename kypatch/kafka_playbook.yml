@@ -1,0 +1,133 @@
+---
+- name: Patch Kafka servers and manage services
+  hosts: "{{ target_group }}"
+  become: yes
+  vars:
+    log_path: "{{ log_directory }}/{{ cr_no.user_input }}/execution.log"
+
+  tasks:
+    - name: Check if zookeeper.service is running
+      command: systemctl is-active zookeeper.service
+      register: zookeeper_status
+      ignore_errors: yes
+
+    - name: Log zookeeper.service status
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "zookeeper.service status: {{ zookeeper_status.stdout }}"
+
+    - name: Notify if zookeeper.service is running and prompt to stop it
+      when: zookeeper_status.stdout == "active"
+      pause:
+        prompt: "zookeeper.service is currently running. Do you want to stop the zookeeper.service? (yes/no)"
+
+    - name: Stop zookeeper.service if running
+      when: (zookeeper_status.stdout == "active") and (ansible_facts['user_input'].lower() == 'yes')
+      systemd:
+        name: zookeeper.service
+        state: stopped
+
+    - name: Log zookeeper.service stop
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "zookeeper.service stopped."
+
+    - name: Check if schema-registry.service is running
+      command: systemctl is-active schema-registry.service
+      register: schema_registry_status
+      ignore_errors: yes
+
+    - name: Log schema-registry.service status
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "schema-registry.service status: {{ schema_registry_status.stdout }}"
+
+    - name: Notify if schema-registry.service is running and prompt to stop it
+      when: schema_registry_status.stdout == "active"
+      pause:
+        prompt: "schema-registry.service is currently running. Do you want to stop the schema-registry.service? (yes/no)"
+
+    - name: Stop schema-registry.service if running
+      when: (schema_registry_status.stdout == "active") and (ansible_facts['user_input'].lower() == 'yes')
+      systemd:
+        name: schema-registry.service
+        state: stopped
+
+    - name: Log schema-registry.service stop
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "schema-registry.service stopped."
+
+    - name: Check if kafka-broker.service is running
+      command: systemctl is-active kafka-broker.service
+      register: kafka_broker_status
+      ignore_errors: yes
+
+    - name: Log kafka-broker.service status
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "kafka-broker.service status: {{ kafka_broker_status.stdout }}"
+
+    - name: Notify if kafka-broker.service is running and prompt to stop it
+      when: kafka_broker_status.stdout == "active"
+      pause:
+        prompt: "kafka-broker.service is currently running. Do you want to stop the kafka-broker.service? (yes/no)"
+
+    - name: Stop kafka-broker.service if running
+      when: (kafka_broker_status.stdout == "active") and (ansible_facts['user_input'].lower() == 'yes')
+      systemd:
+        name: kafka-broker.service
+        state: stopped
+
+    - name: Log kafka-broker.service stop
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "kafka-broker.service stopped."
+
+    - include_tasks: clean_boot.yml
+
+    - name: Update and upgrade the server
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+        force_apt_get: yes
+
+    - name: Log upgrade
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "Server updated and upgraded."
+
+    - name: Reboot the server
+      reboot:
+
+    - name: Wait for the server to come back online
+      wait_for_connection:
+        delay: 30
+        timeout: 300
+
+    - name: Ensure zookeeper.service is running after reboot
+      systemd:
+        name: zookeeper.service
+        state: started
+        enabled: yes
+
+    - name: Ensure schema-registry.service is running after reboot
+      systemd:
+        name: schema-registry.service
+        state: started
+        enabled: yes
+
+    - name: Ensure kafka-broker.service is running after reboot
+      systemd:
+        name: kafka-broker.service
+        state: started
+        enabled: yes
+
+    - name: Log services status after reboot
+      blockinfile:
+        path: "{{ log_path }}"
+        block: |
+          zookeeper.service status after reboot: {{ zookeeper_status.stdout }}
+          schema-registry.service status after reboot: {{ schema_registry_status.stdout }}
+          kafka-broker.service status after reboot: {{ kafka_broker_status.stdout }}

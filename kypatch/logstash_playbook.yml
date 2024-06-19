@@ -1,0 +1,66 @@
+---
+- name: Patch Logstash servers and manage services
+  hosts: "{{ target_group }}"
+  become: yes
+  vars:
+    log_path: "{{ log_directory }}/{{ cr_no.user_input }}/execution.log"
+
+  tasks:
+    - name: Check if logstash.service is running
+      command: systemctl is-active logstash.service
+      register: logstash_status
+      ignore_errors: yes
+
+    - name: Log logstash.service status
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "logstash.service status: {{ logstash_status.stdout }}"
+
+    - name: Notify if logstash.service is running and prompt to stop it
+      when: logstash_status.stdout == "active"
+      pause:
+        prompt: "logstash.service is currently running. Do you want to stop the logstash.service? (yes/no)"
+
+    - name: Stop logstash.service if running
+      when: (logstash_status.stdout == "active") and (ansible_facts['user_input'].lower() == 'yes')
+      systemd:
+        name: logstash.service
+        state: stopped
+
+    - name: Log logstash.service stop
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "logstash.service stopped."
+
+    - include_tasks: clean_boot.yml
+
+    - name: Update and upgrade the server
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+        force_apt_get: yes
+
+    - name: Log upgrade
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "Server updated and upgraded."
+
+    - name: Reboot the server
+      reboot:
+
+    - name: Wait for the server to come back online
+      wait_for_connection:
+        delay: 30
+        timeout: 300
+
+    - name: Ensure logstash.service is running after reboot
+      systemd:
+        name: logstash.service
+        state: started
+        enabled: yes
+
+    - name: Log services status after reboot
+      blockinfile:
+        path: "{{ log_path }}"
+        block: "logstash.service status after reboot: {{ logstash_status.stdout }}"
