@@ -8,16 +8,16 @@
 
   - name: I want to display result
     debug:
-      msg: "{{result}}"
+      msg: "{{myresult}}"
 
   - name: install git
     apt:
       name: git
       state: present
-      when: result.stderr ==""
+      when: myresult.stderr ==""
 
   - name: install tree
     apt: 
       name: install tree
       state: present
-      when: result.stderr !=""
+      when: myresult.stderr !=""
