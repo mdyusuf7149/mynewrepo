@@ -1,0 +1,8 @@
+---
+- hosts: 10.0.0.5
+  become: yes
+  tasks:
+  - name: Create a file
+    file:
+      path: /home/mohduser/mynewrepo
+      state: touch
