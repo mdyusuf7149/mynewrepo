@@ -12,6 +12,6 @@
       src: mystaticfile
       dest: /home/mohduser
   - name: copy my dyno file from master to node
-    templete: 
+    template: 
          src: mydyno.j2
          dest: /var/www/html/index.html
