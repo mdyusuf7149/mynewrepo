@@ -22,8 +22,8 @@
        dest: /home/mohduser/apache-tomcat-8.5.73.tar.gz
        force_basic_auth: yes
     handlers:
-    - name: restartwebserver
-      service:
+  - name: restartwebserver
+    service:
         name: apache2
         state: restarted
     
