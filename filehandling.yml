@@ -24,6 +24,6 @@
     handlers:
   - name: restartwebserver
     service:
-        name: apache2
-        state: restarted
+       name: apache2
+       state: restarted
     
